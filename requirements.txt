@@ -86,7 +86,7 @@ notebook==7.4.3
 notebook_shim==0.2.4
 numba==0.61.2
 numpy==2.0.0
-openai==1.88.0
+openai==1.13.3
 overrides==7.7.0
 packaging==24.2
 pandas==1.5.3

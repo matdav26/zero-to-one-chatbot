@@ -1,17 +1,16 @@
 import uuid
 import requests
 import streamlit as st
-from openai import OpenAI
+import openai
 from pinecone import Pinecone
 
 # Retrieve secrets using Streamlit's secure storage
-openai_api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 arthur_token = st.secrets["ARTHUR_API_KEY"]
 index_name = "podcastrag2"
 
-# Initialize OpenAI and Pinecone clients
-client = OpenAI(api_key=openai_api_key)
+# Initialize Pinecone client and index
 pc = Pinecone(api_key=pinecone_api_key)
 index = pc.Index(index_name)
 
@@ -53,7 +52,7 @@ def send_trace_to_arthur(prompt, response, context):
 
 def answer_query(query, index, top_k=5, model="gpt-4o"):
     # Step 1: Embed the query
-    response = client.embeddings.create(
+    response = openai.embeddings.create(
         model="text-embedding-3-small",
         input=query
     )
@@ -92,7 +91,7 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
     """
 
     # Step 5: Call GPT
-    chat_response = client.chat.completions.create(
+    chat_response = openai.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7

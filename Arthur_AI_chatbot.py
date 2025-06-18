@@ -99,4 +99,4 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
 
     send_trace_to_arthur(query, answer, context)
 
-    return answer, sources
+    return answer, context

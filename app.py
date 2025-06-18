@@ -22,8 +22,12 @@ query = st.text_input("Ask a question:")
 if query:
     st.write("Thinking...")
     try:
-        answer = answer_query(query, index)
+        answer, sources = answer_query(query, index)  # ✅ Unpack both values
         st.success(answer)
+
+        with st.expander("🔍 Show source excerpts"):
+            st.markdown(sources)
+
         st.markdown("*✅ This answer was validated using ArthurAI's hallucination detection.*")
     except Exception as e:
         st.error(f"Something went wrong: {e}")

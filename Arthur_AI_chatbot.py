@@ -60,8 +60,15 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
         include_metadata=True
     )
 
+    # Context for prompt
     context = "\n\n".join([
         f"{m['metadata'].get('speaker', 'Unknown')}: {m['metadata']['text']}"
+        for m in results["matches"]
+    ])
+
+    # Individual excerpts for UI display
+    sources = "\n\n".join([
+        f"- **{m['metadata'].get('speaker', 'Unknown')}**: {m['metadata']['text']}"
         for m in results["matches"]
     ])
 
@@ -91,4 +98,5 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
     answer = chat_response.choices[0].message.content.strip()
 
     send_trace_to_arthur(query, answer, context)
-    return answer
+
+    return answer, sources

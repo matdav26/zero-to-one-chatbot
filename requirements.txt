@@ -161,7 +161,3 @@ webencodings==0.5.1
 websocket-client==1.8.0
 widgetsnbextension==4.0.14
 yaspin==3.1.0
-openai
-pinecone-client
-streamlit
-python-dotenv

@@ -48,6 +48,7 @@ def send_trace_to_arthur(prompt, response, context):
 
     except Exception as e:
         print("⚠️ Arthur error:", e)
+        # Optionally: st.error(f"Arthur API error: {e}")
 
 def answer_query(query, index, top_k=5, model="gpt-4o"):
     # Step 1: Embed the query

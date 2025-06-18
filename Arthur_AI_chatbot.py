@@ -53,7 +53,7 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
     # Step 1: Embed the query
     embedding_response = openai.embeddings.create(
         model="text-embedding-3-small",
-        input=[query]
+        input=query
     )
     query_embedding = embedding_response.data[0].embedding
 

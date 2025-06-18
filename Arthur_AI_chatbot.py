@@ -1,17 +1,13 @@
-import os
 import uuid
 import requests
-from dotenv import load_dotenv
+import streamlit as st
 from openai import OpenAI
 from pinecone import Pinecone
 
-# Load environment variables from .env
-load_dotenv()
-
-# Retrieve secrets securely
-openai_api_key = os.getenv("OPENAI_API_KEY")
-pinecone_api_key = os.getenv("PINECONE_API_KEY")
-arthur_token = os.getenv("ARTHUR_API_KEY")  # Add this to .env
+# Retrieve secrets using Streamlit's secure storage
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+pinecone_api_key = st.secrets["PINECONE_API_KEY"]
+arthur_token = st.secrets["ARTHUR_API_KEY"]
 index_name = "podcastrag2"
 
 # Initialize OpenAI and Pinecone clients
@@ -107,6 +103,3 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
     send_trace_to_arthur(query, answer, context)
 
     return answer
-
-# Example usage (optional for testing)
-# print(answer_query("What's the best time to become an entrepreneur?", index))

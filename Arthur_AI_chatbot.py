@@ -1,11 +1,11 @@
 import uuid
 import requests
 import streamlit as st
-from openai import OpenAI
+import openai
 from pinecone import Pinecone
 
-# Use OpenAI's new client interface
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+# Set API keys
+openai.api_key = st.secrets["OPENAI_API_KEY"]
 pinecone_api_key = st.secrets["PINECONE_API_KEY"]
 arthur_token = st.secrets["ARTHUR_API_KEY"]
 index_name = "podcastrag2"
@@ -14,9 +14,10 @@ index_name = "podcastrag2"
 pc = Pinecone(api_key=pinecone_api_key)
 index = pc.Index(index_name)
 
-# Arthur API settings
+# Arthur URLs
 ARTHUR_PROMPT_URL = "http://localhost:3030/api/v2/tasks/022bd0ba-366f-41f4-9bb0-cac09910b650/validate_prompt"
 ARTHUR_RESPONSE_URL_TEMPLATE = "http://localhost:3030/api/v2/tasks/022bd0ba-366f-41f4-9bb0-cac09910b650/validate_response/{inference_id}"
+
 HEADERS = {
     "Authorization": f"Bearer {arthur_token}",
     "Content-Type": "application/json"
@@ -32,7 +33,6 @@ def send_trace_to_arthur(prompt, response, context):
         prompt_res = requests.post(ARTHUR_PROMPT_URL, json=payload_prompt, headers=HEADERS)
         prompt_res.raise_for_status()
         inference_id = prompt_res.json()["inference_id"]
-        print("✅ Arthur prompt validated:", inference_id)
 
         payload_response = {
             "response": response,
@@ -41,33 +41,30 @@ def send_trace_to_arthur(prompt, response, context):
         response_url = ARTHUR_RESPONSE_URL_TEMPLATE.format(inference_id=inference_id)
         response_res = requests.post(response_url, json=payload_response, headers=HEADERS)
         response_res.raise_for_status()
-        print("✅ Arthur response validated:", response_res.json())
 
     except Exception as e:
         print("⚠️ Arthur error:", e)
 
 def answer_query(query, index, top_k=5, model="gpt-4o"):
-    # Embed the query
-    embedding_response = client.embeddings.create(
+    # Embed query
+    embedding_response = openai.embeddings.create(
         model="text-embedding-3-small",
         input=query
     )
     query_embedding = embedding_response.data[0].embedding
 
-    # Search Pinecone
+    # Pinecone search
     results = index.query(
         vector=query_embedding,
         top_k=top_k,
         include_metadata=True
     )
 
-    # Build the context
     context = "\n\n".join([
         f"{m['metadata'].get('speaker', 'Unknown')}: {m['metadata']['text']}"
         for m in results["matches"]
     ])
 
-    # Construct the prompt
     prompt = f"""
     You are a helpful assistant trained on podcast transcripts from the podcast 'Zero to One'. 
     Each excerpt includes content spoken by a specific guest or co-host. 
@@ -86,15 +83,12 @@ def answer_query(query, index, top_k=5, model="gpt-4o"):
     Answer:
     """
 
-    # Call OpenAI Chat API
-    chat_response = client.chat.completions.create(
+    chat_response = openai.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
     answer = chat_response.choices[0].message.content.strip()
 
-    # Log to Arthur
     send_trace_to_arthur(query, answer, context)
-
     return answer
